@@ -18,7 +18,7 @@ const docTemplate = `{
     "paths": {
         "/persons": {
             "get": {
-                "description": "Получение списка людей при помощи фильтров и пагинацией",
+                "description": "Получение списка людей при помощи фильтров и пагинацией. Примечание name и surname работает через поиск подстроки",
                 "consumes": [
                     "application/json"
                 ],

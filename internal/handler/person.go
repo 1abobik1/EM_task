@@ -85,7 +85,7 @@ func (h *PersonHandler) CreatePerson(c *gin.Context) {
 }
 
 // @Summary     List persons
-// @Description Получение списка людей при помощи фильтров и пагинацией
+// @Description Получение списка людей при помощи фильтров и пагинацией. Примечание name и surname работает через поиск подстроки
 // @Tags        persons
 // @Accept      json
 // @Produce     json
