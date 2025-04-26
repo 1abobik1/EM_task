@@ -1,0 +1,351 @@
+basePath: /
+definitions:
+  dto.BadRequest:
+    description: Bad request
+    properties:
+      error:
+        example: invalid request data
+        type: string
+    type: object
+  dto.CreatePersonRequest:
+    properties:
+      name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      patronymic:
+        maxLength: 50
+        type: string
+      surname:
+        maxLength: 50
+        minLength: 2
+        type: string
+    required:
+    - name
+    - surname
+    type: object
+  dto.InternalServerError:
+    description: Internal server error
+    properties:
+      error:
+        example: internal error
+        type: string
+    type: object
+  dto.ListPersonsResponse:
+    description: Ответ списка Person
+    properties:
+      pagination:
+        $ref: '#/definitions/dto.PaginationInfo'
+      persons:
+        items:
+          $ref: '#/definitions/dto.PersonResponse'
+        type: array
+    type: object
+  dto.NotFound:
+    description: Resource not found
+    properties:
+      error:
+        example: person not found
+        type: string
+    type: object
+  dto.PaginationInfo:
+    description: Метаданные пагинации
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+    type: object
+  dto.PersonResponse:
+    description: основная информация о пользователе в json
+    properties:
+      age:
+        type: integer
+      created_at:
+        type: string
+      gender:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      nationality:
+        type: string
+      patronymic:
+        type: string
+      surname:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.ServiceUnavailable:
+    description: Service unavailable
+    properties:
+      error:
+        example: service unavailable
+        type: string
+    type: object
+  dto.UpdatePersonRequest:
+    properties:
+      age:
+        maximum: 110
+        minimum: 0
+        type: integer
+      gender:
+        enum:
+        - male
+        - female
+        type: string
+      name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      nationality:
+        type: string
+      patronymic:
+        maxLength: 50
+        type: string
+      surname:
+        maxLength: 50
+        minLength: 2
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Сервис выполненный по тз https://drive.google.com/file/d/1zUU44O1ye5-3yYRdhLMEhpG9JXz-TWeQ/view
+  title: Persons API
+  version: "1.0"
+paths:
+  /persons:
+    get:
+      consumes:
+      - application/json
+      description: Получение списка людей при помощи фильтров и пагинацией
+      parameters:
+      - description: Фильтр по имени
+        in: query
+        name: name
+        type: string
+      - description: Фильтр по фамилии
+        in: query
+        name: surname
+        type: string
+      - description: Фильтр по возрасту
+        in: query
+        name: age
+        type: integer
+      - description: Фильтр по полу
+        in: query
+        name: gender
+        type: string
+      - description: Фильтр по национальности
+        in: query
+        name: nationality
+        type: string
+      - default: 1
+        description: Номер страницы
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Размер страницы
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ListPersonsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.BadRequest'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.NotFound'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.InternalServerError'
+      summary: List persons
+      tags:
+      - persons
+    post:
+      consumes:
+      - application/json
+      description: Создаёт нового человека, обогащает информацию с помощью внешнего
+        API и сохраняет в PostgreSQL
+      parameters:
+      - description: Параметры для создания
+        in: body
+        name: person
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreatePersonRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Сущность человека
+          schema:
+            $ref: '#/definitions/dto.PersonResponse'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/dto.BadRequest'
+        "500":
+          description: Внутренняя ошибка
+          schema:
+            $ref: '#/definitions/dto.InternalServerError'
+        "503":
+          description: Сервис недоступен
+          schema:
+            $ref: '#/definitions/dto.ServiceUnavailable'
+      summary: Add person
+      tags:
+      - persons
+  /persons/{id}:
+    delete:
+      description: Удаляет человека по идентификатору
+      parameters:
+      - description: Person ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.BadRequest'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.NotFound'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.InternalServerError'
+      summary: Delete person
+      tags:
+      - persons
+    get:
+      consumes:
+      - application/json
+      description: Возвращает информацию о человеке по его уникальному идентификатору
+      parameters:
+      - description: Идентификатор человека
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Найдённая сущность Person
+          schema:
+            $ref: '#/definitions/dto.PersonResponse'
+        "400":
+          description: Неверный формат ID
+          schema:
+            $ref: '#/definitions/dto.BadRequest'
+        "404":
+          description: Person не найден
+          schema:
+            $ref: '#/definitions/dto.NotFound'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/dto.InternalServerError'
+      summary: Get person by ID
+      tags:
+      - persons
+    patch:
+      consumes:
+      - application/json
+      description: 'Обновляет информацию о человеке (любые поля: name, surname, patronymic,
+        age, gender, nationality)'
+      parameters:
+      - description: Идентификатор человека
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Поля для обновления
+        in: body
+        name: person
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdatePersonRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Обновлённая сущность человека
+          schema:
+            $ref: '#/definitions/dto.PersonResponse'
+        "400":
+          description: Некорректный запрос или параметры
+          schema:
+            $ref: '#/definitions/dto.BadRequest'
+        "404":
+          description: Человек не найден
+          schema:
+            $ref: '#/definitions/dto.NotFound'
+        "500":
+          description: Внутренняя ошибка
+          schema:
+            $ref: '#/definitions/dto.InternalServerError'
+      summary: Update person
+      tags:
+      - persons
+    put:
+      consumes:
+      - application/json
+      description: 'Обновляет информацию о человеке (любые поля: name, surname, patronymic,
+        age, gender, nationality)'
+      parameters:
+      - description: Идентификатор человека
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Поля для обновления
+        in: body
+        name: person
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdatePersonRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Обновлённая сущность человека
+          schema:
+            $ref: '#/definitions/dto.PersonResponse'
+        "400":
+          description: Некорректный запрос или параметры
+          schema:
+            $ref: '#/definitions/dto.BadRequest'
+        "404":
+          description: Человек не найден
+          schema:
+            $ref: '#/definitions/dto.NotFound'
+        "500":
+          description: Внутренняя ошибка
+          schema:
+            $ref: '#/definitions/dto.InternalServerError'
+      summary: Update person
+      tags:
+      - persons
+swagger: "2.0"

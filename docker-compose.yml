@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  db:
+    container_name: person_db
+    image: postgres:14-alpine
+    env_file:
+      - .env
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - 5433:5432
+    networks:
+      - app-network
+
+  migrate:
+    image: migrate/migrate:v4.16.2
+    depends_on:
+      - db
+    volumes:
+      - ./migrations:/migrations
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "sleep 5 &&
+      migrate -path=/migrations -database=${STORAGE_PATH} up"
+    networks:
+      - app-network
+
+  person-service:
+    container_name: person-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      CONFIG_PATH: .env
+    depends_on:
+      - migrate
+    ports:
+      - 8080:8080
+    networks:
+      - app-network
+
+volumes:
+  db_data:
+
+networks:
+  app-network:

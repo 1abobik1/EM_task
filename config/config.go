@@ -4,14 +4,17 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	
+	Port           string `env:"SERVER_PORT" env-required:"true"`
+	DatabaseURL    string `env:"STORAGE_PATH" env-required:"true"`
+	AgifyURL       string `env:"AGIFY_URL" env-required:"true"`
+	GenderizeURL   string `env:"GENDERIZE_URL" env-required:"true"`
+	NationalizeURL string `env:"NATIONALIZE_URL" env-required:"true"`
 }
 
 func MustLoad() *Config {
@@ -44,7 +47,7 @@ func getConfigPath() string {
 	if envPath := os.Getenv("CONFIG_PATH"); envPath != "" {
 		return envPath
 	}
-	
+
 	var res string
 	flag.StringVar(&res, "config", "", "path to config file")
 	flag.Parse()
